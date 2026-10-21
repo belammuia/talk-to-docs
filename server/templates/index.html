@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Talk to your docs</title>
+  <style>
+    :root {
+      --bg: #f6f5f2;
+      --card: #ffffff;
+      --border: #e4e3df;
+      --text: #26262e;
+      --muted: #6b6b76;
+      --primary: #565a96;
+      --primary-soft: #ecedf7;
+      --danger: #c0392b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    svg { width: 18px; height: 18px; stroke: currentColor; fill: none;
+          stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+    .hidden { display: none !important; }
+
+    header { background: #fff; border-bottom: 1px solid var(--border); }
+    .wrap { max-width: 832px; margin: 0 auto; padding: 0 20px; }
+    .brand { display: flex; align-items: center; gap: 15px; height: 70px; font-size: 18px; }
+    .icon-box {
+      width: 32px; height: 32px; border-radius: 8px; background: var(--primary-soft);
+      color: var(--primary); display: grid; place-items: center;
+    }
+
+    main { padding: 50px 0 40px; }
+    h1 { font-size: 32px; margin: 18px 0 18px; }
+    .sub { color: var(--muted); margin: 0 0 32px; font-size: 16px; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; }
+
+    /* file card */
+    #fileCard { padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+    .file-icon { width: 48px; height: 48px; border-radius: 10px; background: var(--primary-soft);
+                 color: var(--primary); display: grid; place-items: center; }
+    .file-icon svg { width: 22px; height: 22px; }
+    .file-info { flex: 1; min-width: 160px; }
+    .file-name { font-weight: 600; word-break: break-word; }
+    .file-meta { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .ready { display: flex; align-items: center; gap: 6px; color: var(--primary); font-size: 14px; }
+    .upload-prompt { color: var(--muted); }
+
+    .btn {
+      font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 20px; border-radius: 8px; border: 1px solid var(--border);
+      background: #fff; color: var(--primary);
+    }
+    .btn:hover { background: #fafafa; }
+    .btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .btn.primary:hover { background: #4a4e88; }
+    .btn.small { padding: 7px 14px; font-size: 14px; font-weight: 500; }
+    .btn.recording { color: var(--danger); border-color: var(--danger); }
+    .btn:disabled { opacity: .6; cursor: default; }
+
+    label.field { display: block; font-weight: 600; font-size: 14px; margin-bottom: 10px; }
+    textarea {
+      width: 100%; min-height: 120px; resize: vertical; padding: 16px;
+      font: inherit; font-size: 16px; color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px; background: #fff; outline: none;
+    }
+    textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+
+    .actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
+    .hint { font-size: 13px; color: var(--muted); }
+    .buttons { display: flex; gap: 12px; }
+
+    #status { min-height: 22px; margin: 16px 0 0; font-size: 14px; color: var(--muted); }
+    #status.error { color: var(--danger); }
+
+    /* answer card */
+    #answerCard { padding: 28px; margin-top: 16px; }
+    #answerCard h2 { margin: 0; font-size: 20px; }
+    .based { font-size: 13px; color: var(--muted); margin: 4px 0 20px; }
+    #answerText { font-size: 18px; line-height: 1.55; margin: 0 0 24px; white-space: pre-wrap; }
+    .divider { border: 0; border-top: 1px solid var(--border); margin: 0 0 20px; }
+    .sources-label { font-size: 12px; letter-spacing: .06em; font-weight: 600; color: var(--muted); margin-bottom: 12px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+    .chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;
+            border: 1px solid var(--border); border-radius: 8px; font-size: 14px; color: var(--primary); }
+
+    .listen { background: var(--primary-soft); border-radius: 10px; padding: 16px 16px 14px; }
+    .listen-title { font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 10px; }
+    .player { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .play { width: 44px; height: 44px; border-radius: 8px; border: 1px solid var(--border);
+            background: #fff; color: var(--primary); cursor: pointer; display: grid; place-items: center; }
+    .track { flex: 1; min-width: 140px; }
+    input[type=range] { width: 100%; accent-color: var(--primary); margin: 0; }
+    .times { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .vol { display: flex; align-items: center; gap: 10px; color: var(--primary); }
+    .vol input { width: 90px; }
+
+    .footer-note { font-size: 13px; color: var(--muted); margin-top: 28px; }
+
+    @media (max-width: 600px) {
+      main { padding-top: 28px; }
+      h1 { font-size: 26px; }
+      .buttons { width: 100%; order: -1; }
+      .buttons .btn { flex: 1; }
+      #answerCard { padding: 20px; }
+      .vol { width: 100%; justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        </div>
+        Talk to your docs
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h1>Ask your document</h1>
+    <p class="sub">Upload a PDF. Ask a question. Get answers with sources.</p>
+
+    <input type="file" id="file" accept=".pdf" class="hidden">
+
+    <!-- file card -->
+    <div class="card" id="fileCard">
+      <div class="file-icon">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+      </div>
+      <div class="file-info">
+        <div class="file-name" id="fileName">No document yet</div>
+        <div class="file-meta" id="fileMeta">Choose a PDF to get started</div>
+      </div>
+      <div class="ready hidden" id="ready">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>
+        Ready to ask
+      </div>
+      <button class="btn small" id="fileBtn" onclick="$('file').click()">Choose PDF</button>
+    </div>
+
+    <!-- question -->
+    <label class="field" for="q">Your question</label>
+    <textarea id="q" placeholder="e.g. What is the name of the project?"></textarea>
+
+    <div class="actions">
+      <span class="hint">Type your question or use your microphone.</span>
+      <div class="buttons">
+        <button class="btn" id="mic" onclick="toggleMic()">
+          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+          <span id="micLabel">Microphone</span>
+        </button>
+        <button class="btn primary" id="askBtn" onclick="ask()">
+          <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          Ask
+        </button>
+      </div>
+    </div>
+
+    <p id="status"></p>
+
+    <!-- answer -->
+    <section class="card hidden" id="answerCard">
+      <h2>Answer</h2>
+      <div class="based" id="based"></div>
+      <p id="answerText"></p>
+      <hr class="divider">
+      <div class="sources-label" id="sourcesLabel"></div>
+      <div class="chips" id="chips"></div>
+
+      <div class="listen" id="listen">
+        <div class="listen-title">Listen to this answer</div>
+        <div class="player">
+          <button class="play" id="playBtn" aria-label="Play">
+            <svg id="iconPlay" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>
+            <svg id="iconPause" class="hidden" viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+          </button>
+          <div class="track">
+            <input type="range" id="progress" min="0" max="100" value="0" step="0.1">
+            <div class="times"><span id="cur">0:00</span><span id="dur">0:00</span></div>
+          </div>
+          <div class="vol">
+            <svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
+          </div>
+        </div>
+        <audio id="player"></audio>
+      </div>
+      <div class="hint hidden" id="audioNote"></div>
+    </section>
+
+    <p class="footer-note">Answers are based on your PDF. Check the source pages for context.</p>
+  </main>
+
+<script>
+const $ = id => document.getElementById(id);
+let docName = "";
+
+function setStatus(msg, isError = false) {
+  const s = $("status");
+  s.textContent = msg;
+  s.className = isError ? "error" : "";
+}
+
+/* ---------- upload ---------- */
+$("file").addEventListener("change", upload);
+
+async function upload() {
+  const f = $("file").files[0];
+  if (!f) return;
+
+  $("fileName").textContent = f.name;
+  $("fileMeta").textContent = "Uploading and indexing...";
+  $("ready").classList.add("hidden");
+  $("fileBtn").disabled = true;
+
+  const fd = new FormData();
+  fd.append("file", f);
+
+  try {
+    const r = await fetch("/upload", { method: "POST", body: fd });
+    const data = await r.json();
+    if (data.error) {
+      $("fileMeta").textContent = data.error;
+      $("fileBtn").textContent = "Choose PDF";
+      return;
+    }
+    docName = data.filename;
+    $("fileMeta").textContent = `${data.pages} pages · ${data.chunks} chunks indexed`;
+    $("ready").classList.remove("hidden");
+    $("fileBtn").textContent = "Change";
+  } catch (e) {
+    $("fileMeta").textContent = "Upload failed: " + e.message;
+  } finally {
+    $("fileBtn").disabled = false;
+    $("file").value = "";
+  }
+}
+
+/* ---------- ask ---------- */
+async function ask() {
+  const question = $("q").value.trim();
+  if (!question) { setStatus("Type or speak a question first.", true); return; }
+
+  $("askBtn").disabled = true;
+  setStatus("Thinking...");
+  $("answerCard").classList.add("hidden");
+
+  try {
+    const fd = new FormData();
+    fd.append("question", question);
+    const r = await fetch("/ask", { method: "POST", body: fd });
+    const data = await r.json();
+    if (data.error) { setStatus(data.error, true); return; }
+
+    showAnswer(data);
+    setStatus("");
+    await speak(data.answer);
+  } catch (e) {
+    setStatus("Something went wrong: " + e.message, true);
+  } finally {
+    $("askBtn").disabled = false;
+  }
+}
+
+function showAnswer(data) {
+  $("based").textContent = docName ? "Based on " + docName : "Based on your PDF";
+  $("answerText").textContent = data.answer;
+
+  const pages = [...new Set(data.matches.map(m => m.page))].sort((a, b) => a - b);
+  $("sourcesLabel").textContent = `SOURCES · ${pages.length} ${pages.length === 1 ? "PAGE" : "PAGES"}`;
+  $("chips").innerHTML = "";
+  pages.forEach(p => {
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.innerHTML = '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
+    chip.append("Page " + p);
+    $("chips").appendChild(chip);
+  });
+
+  $("listen").classList.add("hidden");
+  $("audioNote").classList.add("hidden");
+  $("answerCard").classList.remove("hidden");
+  $("answerCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+/* ---------- speak (TTS) ---------- */
+async function speak(text) {
+  setStatus("Generating audio...");
+  try {
+    const a = await fetch("/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (!a.ok) throw new Error("TTS failed");
+    const audio = $("player");
+    audio.src = URL.createObjectURL(await a.blob());
+    $("listen").classList.remove("hidden");
+    audio.play().catch(() => {});
+    setStatus("");
+  } catch (e) {
+    $("audioNote").textContent = "Audio unavailable, but the text answer is above.";
+    $("audioNote").classList.remove("hidden");
+    setStatus("");
+  }
+}
+
+/* ---------- custom audio player ---------- */
+const audio = $("player");
+const fmt = s => isFinite(s) ? Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") : "0:00";
+
+$("playBtn").onclick = () => (audio.paused ? audio.play() : audio.pause());
+audio.onplay  = () => { $("iconPlay").classList.add("hidden");  $("iconPause").classList.remove("hidden"); };
+audio.onpause = () => { $("iconPause").classList.add("hidden"); $("iconPlay").classList.remove("hidden"); };
+audio.onloadedmetadata = () => { $("dur").textContent = fmt(audio.duration); };
+audio.ontimeupdate = () => {
+  $("cur").textContent = fmt(audio.currentTime);
+  if (isFinite(audio.duration)) $("progress").value = (audio.currentTime / audio.duration) * 100;
+};
+$("progress").oninput = e => {
+  if (isFinite(audio.duration)) audio.currentTime = (e.target.value / 100) * audio.duration;
+};
+$("volume").oninput = e => { audio.volume = e.target.value; };
+
+/* ---------- microphone ---------- */
+let recorder, chunks = [];
+
+async function toggleMic() {
+  const btn = $("mic");
+
+  if (recorder && recorder.state === "recording") {
+    recorder.stop();
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recorder = new MediaRecorder(stream);
+    chunks = [];
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      btn.classList.remove("recording");
+      $("micLabel").textContent = "Microphone";
+      setStatus("Transcribing...");
+      try {
+        const blob = new Blob(chunks, { type: recorder.mimeType });
+        const r = await fetch("/transcribe", {
+          method: "POST",
+          headers: { "Content-Type": recorder.mimeType },
+          body: blob,
+        });
+        const data = await r.json();
+        if (data.error) { setStatus(data.error, true); return; }
+        if (!data.text) { setStatus("Didn't catch anything. Check your mic and try again.", true); return; }
+        $("q").value = data.text;
+        ask();
+      } catch (e) {
+        setStatus("Transcribe failed: " + e.message, true);
+      }
+    };
+    recorder.start();
+    btn.classList.add("recording");
+    $("micLabel").textContent = "Stop";
+    setStatus("Listening... click Stop when you're done.");
+  } catch (e) {
+    setStatus("Mic error: " + e.message, true);
+  }
+}
+
+/* Enter = ask, Shift+Enter = new line */
+$("q").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); }
+});
+</script>
+</body>
+</html>
